@@ -10,6 +10,8 @@ This version of the engine was created by extending the function parser code bas
 
 And, just for completeness, I will mention that there really isn't anything new under the sun; the fundamentals of how this and similar codes work [are described here].
 
+Also, please note that this code is experimental in the sense that it is a somewhat hacked up version of the TSMT function parser.  I peraonally think it's been pushed along that axis about as far as it can go without a full refactor.
+
 
 Author:  Jim Armstrong - [The Algorithmist]
 
