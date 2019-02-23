@@ -13,17 +13,17 @@
 * limitations under the License.
 */
 
-// Specs for various alpha release of Expression Engine
-import {TSMT$ExpressionEngine} from '../src/ExpressionEngine';
+// Expression Engine Specs
+import {TSMT$ExpressionEngine} from '../../expression-engine/ExpressionEngine';
 
-import {expressionValue} from '../src/ExpressionEngine';
+import {expressionValue} from '../../expression-engine/ExpressionEngine';
 
 import * as Chai from 'chai';
 const expect = Chai.expect;
 
 // Test Suites
 describe('Expression Parser Tests', () => {
-  
+
   let __expression: TSMT$ExpressionEngine  = new TSMT$ExpressionEngine();
   let __expression2: TSMT$ExpressionEngine = new TSMT$ExpressionEngine(['x']);
 
@@ -307,16 +307,16 @@ describe('Expression Parser Tests', () => {
 
     expect(<boolean> value).to.be.true;
 
-    value = __expression.evaluate(['sfo', 'SFO'])
+    value = __expression.evaluate(['sfo', 'SFO']);
     expect(<boolean> value).to.be.true;
 
-    value = __expression.evaluate(['SFO', 'SFO'])
+    value = __expression.evaluate(['SFO', 'SFO']);
     expect(<boolean> value).to.be.false;
 
-    value = __expression.evaluate([1.0, 0.0])
+    value = __expression.evaluate([1.0, 0.0]);
     expect(<boolean> value).to.be.true;
 
-    value = __expression.evaluate([3.0, 3.0])
+    value = __expression.evaluate([3.0, 3.0]);
     expect(<boolean> value).to.be.false;
   });
 
@@ -652,6 +652,26 @@ describe('Expression Parser Tests', () => {
     expect( <boolean> value ).to.be.false;
 
     value = __expression.evaluate([10, -1]);
-    expect( <boolean> value ).to.be.true;
+    expect( <boolean> value ).to.be.false;
   });
- });
+
+  it('properly handles more mixed logical negation with boolean expression #2', function() {
+    __expression.clear();
+    __expression.variables = ['x', 'y'];
+
+    let success: boolean = __expression.parse( "!x && (y < 68)" );
+    expect(success).to.be.true;
+
+    let value: expressionValue = __expression.evaluate([false, 59]);
+    expect( <boolean> value ).to.be.true;
+
+    value = __expression.evaluate([false, 68]);
+    expect( <boolean> value ).to.be.false;
+
+    value = __expression.evaluate([true, 59]);
+    expect( <boolean> value ).to.be.false;
+
+    value = __expression.evaluate([true, 70]);
+    expect( <boolean> value ).to.be.false;
+  });
+});
