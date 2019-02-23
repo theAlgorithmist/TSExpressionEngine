@@ -606,8 +606,8 @@ export class TSMT$ExpressionEngine
       switch (tokenType)
       {
         case this.IS_NUMBER:
-          opStack.push( parseFloat(token) );
-          break;
+          opStack.push(+token);
+        break;
 
         case this.IS_ONE_ARG_FUNCTION:
           arg1 = opStack.pop();
@@ -619,7 +619,7 @@ export class TSMT$ExpressionEngine
           }
 
           opStack.push( f(arg1) );
-          break;
+        break;
 
         case this.IS_TWO_ARG_FUNCTION:
           arg1 = opStack.pop();
@@ -631,7 +631,7 @@ export class TSMT$ExpressionEngine
           }
 
           opStack.push( f(arg1, arg2) );
-          break;
+        break;
 
         case this.IS_VARIABLE:
           for (j = 0; j < len; ++j)
@@ -640,15 +640,15 @@ export class TSMT$ExpressionEngine
               opStack.push(variables[j]);
             }
           }
-          break;
+        break;
 
         case this.IS_STR_LITERAL:
           opStack.push(token.toString());
-          break;
+        break;
 
         case this.IS_ARRAY:
           opStack.push(token.toString())
-          break;
+        break;
 
         default:
           return false;  // invalid token
@@ -710,7 +710,7 @@ export class TSMT$ExpressionEngine
 
       if (!(tokenType == this.IS_NONE))
       {
-        if( tokenType == this.IS_CONSTANT         ||
+        if (tokenType == this.IS_CONSTANT       ||
           tokenType == this.IS_NUMBER           ||
           tokenType == this.IS_VARIABLE         ||
           tokenType == this.IS_STR_LITERAL      ||
@@ -720,7 +720,8 @@ export class TSMT$ExpressionEngine
           this._expressionStack.push( token     );
           this._expressionStack.push( tokenType );
 
-          // now, we have to hack - the code structure was already in place before contains was added.  in this case, push in the function and argument list before proceeding
+          // now, we have to hack - the code structure was already in place before contains was added.  in this case,
+          // push in the function and argument list before proceeding
           if (token == this.CONTAINS)
           {
             start = str.indexOf(this.LEFT_PAREN, position);
@@ -731,7 +732,7 @@ export class TSMT$ExpressionEngine
 
             // first element is the variable name
             this._expressionStack.push( args.substring(0,i) );
-            this._expressionStack.push( this.IS_VARIABLE       );
+            this._expressionStack.push( this.IS_VARIABLE    );
 
             // remainder is the comma-delimited list for comparison
             this._expressionStack.push( args.substr(i+1, args.length) );
@@ -779,6 +780,7 @@ export class TSMT$ExpressionEngine
     myStr = this.__processOperator(myStr, this.MULTIPLICATION);
     myStr = this.__processOperator(myStr, this.MINUS         );
     myStr = this.__processOperator(myStr, this.PLUS          );
+    myStr = this.__processOperator(myStr, this.NEGATION      );
     myStr = this.__processOperator(myStr, this.BOOLEAN_AND   );
     myStr = this.__processOperator(myStr, this.BOOLEAN_OR    );
     myStr = this.__processOperator(myStr, this.COMPARE_NE    );
@@ -788,9 +790,8 @@ export class TSMT$ExpressionEngine
     myStr = this.__processOperator(myStr, this.COMPARE_GT    );
     myStr = this.__processOperator(myStr, this.COMPARE_LT    );
     myStr = this.__processOperator(myStr, this.CONTAINED_IN  );
-    myStr = this.__processOperator(myStr, this.NEGATION      );
 
-    if( !this.__validateParentheses(myStr) ) {
+    if (!this.__validateParentheses(myStr)) {
       return "";
     }
 
@@ -862,9 +863,17 @@ export class TSMT$ExpressionEngine
     }
     else
     {
-      while (myStr.indexOf(operator) != -1)
+      while (myStr.indexOf(operator, position) != -1)
       {
-        position   = myStr.indexOf(operator);
+        position = myStr.indexOf(operator, position);
+
+        // imposters ...
+        if (operator == this.NEGATION && position < myStr.length-1 && myStr.charAt(position+1) == '=')
+        {
+          position += 2;
+          continue;
+        }
+
         leftMarker = this.__getBackwardArgument(myStr, position);
 
         if (leftMarker == -1)
@@ -897,8 +906,9 @@ export class TSMT$ExpressionEngine
         }
 
         // check for string literal
-        if (rightOperand.indexOf(this.QUOTE) != -1)
+        if (rightOperand.indexOf(this.QUOTE) != -1) {
           rightOperand = rightOperand.replace(/\'/g, "");
+        }
 
         // check for array list
         if (rightOperand.indexOf(this.LEFT_BRACKET) != -1)
@@ -912,72 +922,73 @@ export class TSMT$ExpressionEngine
         {
           case this.PLUS:
             myStr = myStr.substring(0,leftMarker) + this.ADD + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.MINUS:
             myStr = myStr.substring(0,leftMarker) + this.SUBTRACT + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.MULTIPLICATION:
             myStr = myStr.substring(0,leftMarker) + this.MULTIPLY + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.DIVISION:
             myStr = myStr.substring(0,leftMarker) + this.DIVIDE + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.BOOLEAN_AND:
             myStr = myStr.substring(0,leftMarker) + this.AND + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.BOOLEAN_OR:
             myStr = myStr.substring(0,leftMarker) + this.OR + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.COMPARE_EQ:
             myStr = myStr.substring(0,leftMarker) + this.EQUAL + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.COMPARE_NE:
             myStr = myStr.substring(0,leftMarker) + this.NOT_EQUAL + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.COMPARE_GE:
             myStr = myStr.substring(0,leftMarker) + this.GREATER_THAN_EQUAL + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.COMPARE_GT:
             myStr = myStr.substring(0,leftMarker) + this.GREATER_THAN + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.COMPARE_LE:
             myStr = myStr.substring(0,leftMarker) + this.LESS_THAN_EQUAL + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.COMPARE_LT:
             myStr = myStr.substring(0,leftMarker) + this.LESS_THAN + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.CONTAINED_IN:
             myStr = myStr.substring(0,leftMarker) + this.CONTAINS + this.LEFT_PAREN + leftOperand + "," + rightOperand +
-              this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+                    this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
+          break;
 
           case this.NEGATION:
-            myStr = myStr.substring(0,leftMarker) + this.NEGATE + this.LEFT_PAREN + rightOperand + this.RIGHT_PAREN + myStr.substring(rightMarker,myStr.length+1);
-            break;
+            myStr = myStr.substring(0,leftMarker) + this.NEGATE + this.LEFT_PAREN + rightOperand + this.RIGHT_PAREN +
+                   myStr.substring(rightMarker,myStr.length+1);
+          break;
         }
       }
 
@@ -999,11 +1010,11 @@ export class TSMT$ExpressionEngine
     let charToRight: string = str.charAt(position+1);
 
     // compensate for leading minus
-    if( charToRight == this.MINUS )
+    if (charToRight == this.MINUS)
     {
       toRight++;
 
-      if( toRight >= len )
+      if (toRight >= len)
       {
         // nothing left
         return -1;
@@ -1025,29 +1036,36 @@ export class TSMT$ExpressionEngine
     }
 
     // number?  If so, get next non-number
-    if( this.__isNumber(charToRight) )
+    if (this.__isNumber(charToRight))
     {
       return this.__getNextNonNumber(str, toRight + 1);
     }
-    else if( this.__isCharacter(charToRight) )
+    else if (this.__isCharacter(charToRight))
     {
       toRight = this.__getNextNonChar(str, toRight+1);
-      if( toRight == len-1 ) {
+
+      if (toRight == len-1) {
         return toRight;
       }
 
-      if( this.__isMathOperator( str.charAt(toRight) ) ) {
+      if (this.__isMathOperator(str.charAt(toRight))) {
         return toRight;
       }
 
-      // open parent next?
-      if( str.charAt(toRight) == this.LEFT_PAREN )
+      // operator or beginning of a two-char operator?
+      const char: string = str.charAt(toRight);
+      if (this.OPERATORS.indexOf(char) != -1 || char == "|" || char == "&" || char == '>' || char == '<' || char == '!') {
+        return toRight;
+      }
+
+      // open paren next?
+      if (str.charAt(toRight) == this.LEFT_PAREN)
       {
         // find matching right paren
         toRight = this.__matchLeftParen(str, toRight);
       }
     }
-    else if( charToRight == this.LEFT_PAREN )
+    else if (charToRight == this.LEFT_PAREN)
     {
       // match the left paren
       toRight = this.__matchLeftParen(str, toRight);
@@ -1608,7 +1626,8 @@ export class TSMT$ExpressionEngine
   }
 
   /**
-   *  get the next non-number position, starting at the supplied position, and going in the specified direction - note that 2.5, for example, is a number
+   *  get the next non-number position, starting at the supplied position, and going in the specified direction - note
+   *  that 2.5, for example, is a number
    *
    *  @private
    */
