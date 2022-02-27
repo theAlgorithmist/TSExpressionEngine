@@ -12,6 +12,8 @@ And, just for completeness, I will mention that there really isn't anything new 
 
 Also, please note that this code is experimental in the sense that it is a somewhat hacked up version of the TSMT function parser.  I peraonally think it's been pushed along that axis about as far as it can go without a full refactor.
 
+NOTE:  This repo is obsoleted; the Expression Engine has been upgraded [and is now part of the AMYR library](https://github.com/theAlgorithmist/AMYR).
+
 
 Author:  Jim Armstrong - [The Algorithmist]
 
